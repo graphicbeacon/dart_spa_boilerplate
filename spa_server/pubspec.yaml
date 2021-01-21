@@ -12,5 +12,6 @@ dependencies:
   shelf_static: ^0.2.9+1
 
 dev_dependencies:
+  http: ^0.12.2
   pedantic: ^1.9.0
   test: ^1.14.4
