@@ -1,17 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
+import 'token_service.dart';
 import 'utils.dart';
 
 class AuthApi {
   DbCollection store;
   String secret;
+  TokenService tokenService;
 
-  AuthApi(this.store, this.secret);
+  AuthApi(this.store, this.secret, this.tokenService);
 
   Router get router {
     final router = Router();
@@ -76,18 +79,65 @@ class AuthApi {
 
       // Generate JWT and send with response
       final userId = (user['_id'] as ObjectId).toHexString();
-      final token = generateJwt(userId, 'http://localhost', secret);
-
-      return Response.ok(json.encode({'token': token}), headers: {
-        HttpHeaders.contentTypeHeader: ContentType.json.mimeType,
-      });
+      try {
+        final tokenPair = await tokenService.createTokenPair(userId);
+        return Response.ok(json.encode(tokenPair.toJson()), headers: {
+          HttpHeaders.contentTypeHeader: ContentType.json.mimeType,
+        });
+      } catch (e) {
+        return Response.internalServerError(
+            body: 'There was a problem logging you in. Please try again.');
+      }
     });
 
     router.post('/logout', (Request req) async {
-      if (req.context['authDetails'] == null) {
+      final auth = req.context['authDetails'];
+      if (auth == null) {
         return Response.forbidden('Not authorised to perform this operation.');
       }
+
+      try {
+        await tokenService.removeRefreshToken((auth as JWT).jwtId);
+      } catch (e) {
+        return Response.internalServerError(
+            body:
+                'There was an issue logging out. Please check and try again.');
+      }
+
       return Response.ok('Successfully logged out');
+    });
+
+    router.post('/refreshToken', (Request req) async {
+      final payload = await req.readAsString();
+      final payloadMap = json.decode(payload);
+
+      final token = verifyJwt(payloadMap['refreshToken'], secret);
+      if (token == null) {
+        return Response(400, body: 'Refresh token is not valid.');
+      }
+
+      final dbToken = await tokenService.getRefreshToken((token as JWT).jwtId);
+      if (dbToken == null) {
+        return Response(400, body: 'Refresh token is not recognised.');
+      }
+
+      // Generate new token pair
+      final oldJwt = (token as JWT);
+      try {
+        await tokenService.removeRefreshToken((token as JWT).jwtId);
+
+        final tokenPair = await tokenService.createTokenPair(oldJwt.subject);
+        return Response.ok(
+          json.encode(tokenPair.toJson()),
+          headers: {
+            HttpHeaders.contentTypeHeader: ContentType.json.mimeType,
+          },
+        );
+      } catch (e) {
+        return Response.internalServerError(
+            body:
+                'There was a problem creating a new token. Please try again.');
+      }
     });
 
     return router;

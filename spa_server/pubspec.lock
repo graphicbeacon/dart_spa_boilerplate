@@ -442,6 +442,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.8"
+  redis:
+    dependency: "direct main"
+    description:
+      name: redis
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.3.0"
   rsa_pkcs:
     dependency: transitive
     description:
@@ -583,7 +590,7 @@ packages:
     source: hosted
     version: "1.2.0"
   uuid:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: uuid
       url: "https://pub.dartlang.org"

@@ -41,15 +41,22 @@ String hashPassword(String password, String salt) {
   return digest.toString();
 }
 
-String generateJwt(String subject, String issuer, String secret) {
+String generateJwt(
+  String subject,
+  String issuer,
+  String secret, {
+  String jwtId,
+  Duration expiry = const Duration(seconds: 30),
+}) {
   final jwt = JWT(
     {
       'iat': DateTime.now().millisecondsSinceEpoch,
     },
     subject: subject,
     issuer: issuer,
+    jwtId: jwtId,
   );
-  return jwt.sign(SecretKey(secret));
+  return jwt.sign(SecretKey(secret), expiresIn: expiry);
 }
 
 dynamic verifyJwt(String token, String secret) {
