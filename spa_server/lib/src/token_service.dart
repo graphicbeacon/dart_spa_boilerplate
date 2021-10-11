@@ -10,7 +10,7 @@ class TokenService {
   final RedisConnection db;
   final String secret;
 
-  static Command _cache;
+  static late Command _cache;
   final String _prefix = 'token';
 
   Future<void> start(String host, int port) async {

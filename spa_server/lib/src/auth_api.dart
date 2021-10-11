@@ -43,7 +43,7 @@ class AuthApi {
       // Create user
       final salt = generateSalt();
       final hashedPassword = hashPassword(password, salt);
-      await store.save({
+      await store.insertOne({
         'email': email,
         'password': hashedPassword,
         'salt': salt,
@@ -97,7 +97,7 @@ class AuthApi {
       }
 
       try {
-        await tokenService.removeRefreshToken((auth as JWT).jwtId);
+        await tokenService.removeRefreshToken((auth as JWT).jwtId!);
       } catch (e) {
         return Response.internalServerError(
             body:
@@ -116,17 +116,17 @@ class AuthApi {
         return Response(400, body: 'Refresh token is not valid.');
       }
 
-      final dbToken = await tokenService.getRefreshToken((token as JWT).jwtId);
+      final dbToken = await tokenService.getRefreshToken(token.jwtId!);
       if (dbToken == null) {
         return Response(400, body: 'Refresh token is not recognised.');
       }
 
       // Generate new token pair
-      final oldJwt = (token as JWT);
+      final oldJwt = token;
       try {
-        await tokenService.removeRefreshToken((token as JWT).jwtId);
+        await tokenService.removeRefreshToken((token).jwtId!);
 
-        final tokenPair = await tokenService.createTokenPair(oldJwt.subject);
+        final tokenPair = await tokenService.createTokenPair(oldJwt.subject!);
         return Response.ok(
           json.encode(tokenPair.toJson()),
           headers: {
