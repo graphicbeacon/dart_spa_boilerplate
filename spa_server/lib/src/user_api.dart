@@ -16,9 +16,9 @@ class UserApi {
     router.get('/', (Request req) async {
       final authDetails = req.context['authDetails'] as JWT;
       final user = await store.findOne(
-          where.eq('_id', ObjectId.fromHexString(authDetails.subject)));
+          where.eq('_id', ObjectId.fromHexString(authDetails.subject!)));
 
-      return Response.ok('{ "email": "${user['email']}" }', headers: {
+      return Response.ok('{ "email": "${user!['email']}" }', headers: {
         'content-type': 'application/json',
       });
     });

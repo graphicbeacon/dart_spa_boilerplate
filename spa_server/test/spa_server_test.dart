@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('it should return a 200 response', () async {
-    final response = await http.get('http://localhost:8080');
+    final response = await http.get(Uri.parse('http://localhost:8080'));
 
     expect(response.statusCode, HttpStatus.ok);
   });

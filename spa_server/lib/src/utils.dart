@@ -45,7 +45,7 @@ String generateJwt(
   String subject,
   String issuer,
   String secret, {
-  String jwtId,
+  String? jwtId,
   Duration expiry = const Duration(seconds: 30),
 }) {
   final jwt = JWT(
@@ -59,13 +59,14 @@ String generateJwt(
   return jwt.sign(SecretKey(secret), expiresIn: expiry);
 }
 
-dynamic verifyJwt(String token, String secret) {
+JWT? verifyJwt(String token, String secret) {
   try {
     final jwt = JWT.verify(token, SecretKey(secret));
     return jwt;
   } on JWTExpiredError {
     // TODO Handle error
   } on JWTError catch (err) {
+    print(err);
     // TODO Handle error
   }
 }
@@ -74,7 +75,8 @@ Middleware handleAuth(String secret) {
   return (Handler innerHandler) {
     return (Request request) async {
       final authHeader = request.headers['authorization'];
-      var token, jwt;
+      String? token;
+      JWT? jwt;
 
       if (authHeader != null && authHeader.startsWith('Bearer ')) {
         token = authHeader.substring(7);

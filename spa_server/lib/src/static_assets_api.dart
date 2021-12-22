@@ -4,7 +4,7 @@ import 'package:shelf_static/shelf_static.dart';
 import 'package:path/path.dart' as p;
 
 class StaticAssetsApi {
-  final folderPath;
+  final String folderPath;
 
   StaticAssetsApi(this.folderPath);
 

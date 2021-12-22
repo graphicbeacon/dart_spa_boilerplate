@@ -2,6 +2,11 @@
 
 This repo provides a starting point for any single page applications.
 
+## Requirements
+- Docker Compose
+- MongoDB
+- Dart SDK
+
 ## To run the server
 
 1. Start your MongoDB server
@@ -9,10 +14,15 @@ This repo provides a starting point for any single page applications.
 ```bash
 SECRET_KEY=25BBD370-975D-4D45-8F5A-B3FA92155CCA
 MONGO_URL=mongodb://127.0.0.1:27017/test
+REDIS_HOST=localhost
+REDIS_PORT=6379
+SERVER_PORT=8080
 ```
-3. Start server by hitting <key>**F5**</key> in VS Code or running `dart spa_server/bin/spa_server.dart`
+3. Generate Env with `dart pub run build_runner build` command
+4. Start Redis Server from docker file witj `docker-compose up -d`
+5. Start server by hitting <key>**F5**</key> in VS Code or running `dart spa_server/bin/spa_server.dart`
  in your terminal
-4. Visit **http://localhost:8080** in the browser and use Postman to perform the other api calls.
+6. Visit **http://localhost:8080** in the browser and use Postman to perform the other api calls.
 
 [See the full tutorial](https://youtu.be/ZKNKNxaliZQ).
 
