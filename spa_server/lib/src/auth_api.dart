@@ -108,25 +108,34 @@ class AuthApi {
     });
 
     router.post('/refreshToken', (Request req) async {
+      final auth = req.context['authDetails'] as JWT?;
+      if (auth is JWT) {
+        return Response(400, body: 'Id Token is still valid.');
+      }
+
       final payload = await req.readAsString();
       final payloadMap = json.decode(payload);
 
-      final token = verifyJwt(payloadMap['refreshToken'], secret);
-      if (token == null) {
-        return Response(400, body: 'Refresh token is not valid.');
-      }
+      // Verify current token pair
+      late JWT token;
 
-      final dbToken = await tokenService.getRefreshToken(token.jwtId!);
-      if (dbToken == null) {
-        return Response(400, body: 'Refresh token is not recognised.');
-      }
-
-      // Generate new token pair
-      final oldJwt = token;
       try {
-        await tokenService.removeRefreshToken((token).jwtId!);
+        token = JWT.verify(payloadMap['refreshToken'], SecretKey(secret));
 
-        final tokenPair = await tokenService.createTokenPair(oldJwt.subject!);
+        final dbToken = await tokenService.getRefreshToken(token.jwtId!);
+
+        if (dbToken == null) {
+          return Response(400, body: 'Refresh token is not recognised.');
+        }
+      } on JWTExpiredError {
+        return Response(400, body: 'Refresh token is expired.');
+      } catch (err) {
+        return Response(400, body: err.toString());
+      }
+
+      // Generate new pair
+      try {
+        final tokenPair = await tokenService.createTokenPair(token.subject!);
         return Response.ok(
           json.encode(tokenPair.toJson()),
           headers: {
@@ -135,8 +144,8 @@ class AuthApi {
         );
       } catch (e) {
         return Response.internalServerError(
-            body:
-                'There was a problem creating a new token. Please try again.');
+          body: 'There was a problem creating a new token. Please try again.',
+        );
       }
     });
 

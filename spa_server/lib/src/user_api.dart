@@ -18,7 +18,11 @@ class UserApi {
       final user = await store.findOne(
           where.eq('_id', ObjectId.fromHexString(authDetails.subject!)));
 
-      return Response.ok('{ "email": "${user!['email']}" }', headers: {
+      if (user == null) {
+        return Response.notFound('User details not found');
+      }
+
+      return Response.ok('{ "email": "${user['email']}" }', headers: {
         'content-type': 'application/json',
       });
     });

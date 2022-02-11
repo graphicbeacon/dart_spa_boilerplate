@@ -8,5 +8,5 @@ build/
 # Directory created by dartdoc
 doc/api/
 
-*.env
+.env
 config.g.dart

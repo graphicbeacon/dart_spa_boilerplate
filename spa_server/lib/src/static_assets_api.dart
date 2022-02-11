@@ -4,15 +4,15 @@ import 'package:shelf_static/shelf_static.dart';
 import 'package:path/path.dart' as p;
 
 class StaticAssetsApi {
-  final String folderPath;
+  final String path;
 
-  StaticAssetsApi(this.folderPath);
+  StaticAssetsApi({required this.path});
 
   Router get router {
     final router = Router();
 
     router.get('/<file|.*>', (Request req) async {
-      final assetPath = p.join(folderPath, req.requestedUri.path.substring(1));
+      final assetPath = p.join(path, req.requestedUri.path.substring(1));
       return await createFileHandler(assetPath)(req);
     });
 

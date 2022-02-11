@@ -2,5 +2,25 @@ version: "3.9"
 services:
   redis:
     image: "redis:alpine"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
       - "6379:6379"
+    environment:
+      REDIS_PASSWORD: redisuser2022
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "mongoadmin"
+      MONGO_INITDB_ROOT_PASSWORD: "example"
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "mongoadmin"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: "example"
+      ME_CONFIG_MONGODB_URL: "mongodb://mongoadmin:example@mongo:27017/"

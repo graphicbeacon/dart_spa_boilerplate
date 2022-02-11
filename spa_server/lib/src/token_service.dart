@@ -13,8 +13,13 @@ class TokenService {
   static late Command _cache;
   final String _prefix = 'token';
 
-  Future<void> start(String host, int port) async {
+  Future<void> start({
+    required String host,
+    required password,
+    required int port,
+  }) async {
     _cache = await db.connect(host, port);
+    await _cache.send_object(['AUTH', password]);
   }
 
   Future<TokenPair> createTokenPair(String userId) async {
@@ -41,7 +46,7 @@ class TokenService {
     await _cache.send_object(['EXPIRE', '$_prefix:$id', expiry.inSeconds]);
   }
 
-  Future<dynamic> getRefreshToken(String id) async {
+  Future<dynamic>? getRefreshToken(String id) async {
     return await _cache.get('$_prefix:$id');
   }
 

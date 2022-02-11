@@ -59,29 +59,18 @@ String generateJwt(
   return jwt.sign(SecretKey(secret), expiresIn: expiry);
 }
 
-JWT? verifyJwt(String token, String secret) {
-  try {
-    final jwt = JWT.verify(token, SecretKey(secret));
-    return jwt;
-  } on JWTExpiredError {
-    // TODO Handle error
-  } on JWTError catch (err) {
-    print(err);
-    // TODO Handle error
-  }
-}
-
 Middleware handleAuth(String secret) {
   return (Handler innerHandler) {
     return (Request request) async {
       final authHeader = request.headers['authorization'];
-      String? token;
       JWT? jwt;
 
-      if (authHeader != null && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-        jwt = verifyJwt(token, secret);
-      }
+      try {
+        if (authHeader != null && authHeader.startsWith('Bearer ')) {
+          final token = authHeader.substring(7);
+          jwt = JWT.verify(token, SecretKey(secret));
+        }
+      } catch (_) {}
 
       final updatedRequest = request.change(context: {
         'authDetails': jwt,

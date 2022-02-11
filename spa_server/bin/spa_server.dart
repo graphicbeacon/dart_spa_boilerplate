@@ -3,13 +3,17 @@ import 'package:spa_server/spa_server.dart';
 void main(List<String> arguments) async {
   const secret = Env.secretKey;
   const port = Env.serverPort;
-  final db = Db(Env.mongoUrl);
+  final db = await Db.create(Env.mongoUrl);
   final tokenService = TokenService(RedisConnection(), secret);
 
   await db.open();
   print('Connected to our database');
 
-  await tokenService.start(Env.redisHost, Env.redisPort);
+  await tokenService.start(
+    host: Env.redisHost,
+    password: Env.redisPassword,
+    port: Env.redisPort,
+  );
   print('Token Service running...');
 
   final store = db.collection('users');
@@ -19,7 +23,7 @@ void main(List<String> arguments) async {
 
   app.mount('/users/', UserApi(store).router);
 
-  app.mount('/assets/', StaticAssetsApi('public').router);
+  app.mount('/assets/', StaticAssetsApi(path: 'public').router);
 
   app.all('/<name|.*>', fallback('public/index.html'));
 
@@ -29,7 +33,7 @@ void main(List<String> arguments) async {
       .addMiddleware(handleAuth(secret))
       .addHandler(app);
 
-  await serve(handler, 'localhost', port);
+  await serve(handler, InternetAddress.anyIPv4, port);
 
   print('HTTP Service running on port $port');
 }
